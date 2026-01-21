@@ -16,4 +16,5 @@ publish-*/
 Thumbs.db
 
 # Claude
-.claude/
+.claude/*
+!.claude/commands/
