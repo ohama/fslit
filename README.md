@@ -56,6 +56,7 @@ Results: 1/1 passed
 - [빌드 가이드](docs/build.md)
 - [사용 가이드](docs/usage.md)
 - [설계 문서](docs/design.md)
+- [튜토리얼](docs/howto/README.md) - 처음부터 만들어보기
 
 ## 라이선스
 
