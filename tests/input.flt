@@ -1,0 +1,9 @@
+// --- Command: cat %input
+// --- Input:
+line1
+line2
+line3
+// --- Output:
+line1
+line2
+line3
