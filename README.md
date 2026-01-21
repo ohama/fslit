@@ -52,6 +52,7 @@ Results: 1/1 passed
 
 ## 문서
 
+- [설치 가이드](docs/install.md)
 - [빌드 가이드](docs/build.md)
 - [사용 가이드](docs/usage.md)
 - [설계 문서](docs/design.md)
