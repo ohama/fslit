@@ -1,18 +1,63 @@
 # FsLit
 
-LLVM lit test에서 영감을 받은 F# 테스트 러너. 컴파일러/인터프리터 테스트에 적합합니다.
+![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)
+![F#](https://img.shields.io/badge/F%23-.NET%2010-purple.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-## 빠른 시작
+[한국어](README.ko.md)
+
+An F# test runner inspired by LLVM lit. Ideal for compiler/interpreter testing.
+
+## Quick Start
 
 ```bash
-# 빌드
-dotnet build FsLit/FsLit.fsproj
+# Using Makefile (recommended)
+make build    # Build
+make test     # Run tests
 
-# 테스트 실행
+# Or use dotnet directly
+dotnet build FsLit/FsLit.fsproj
 dotnet run --project FsLit/FsLit.fsproj -- tests/
 ```
 
-## 테스트 파일 예시
+## Makefile Commands
+
+| Command | Description |
+|---------|-------------|
+| `make build` | Build debug version |
+| `make release` | Build release version |
+| `make dist` | Create standalone binary (Linux x64) |
+| `make test` | Run tests |
+| `make clean` | Remove build artifacts |
+| `make help` | Show help |
+
+## Test File Examples
+
+### Example 1: Simple Command Test
+
+`echo.flt`:
+```
+// --- Command: echo "hello world"
+// --- Output:
+hello world
+```
+
+### Example 2: Using Input File
+
+`input.flt`:
+```
+// --- Command: cat %input
+// --- Input:
+line1
+line2
+line3
+// --- Output:
+line1
+line2
+line3
+```
+
+### Example 3: Python Script Test
 
 `hello.flt`:
 ```
@@ -23,41 +68,57 @@ print("Hello, World!")
 Hello, World!
 ```
 
-실행:
-```bash
-$ fslit hello.flt
-PASS: hello.flt
+### Example 4: Compiler Test
 
-Results: 1/1 passed
+`compile.flt`:
 ```
-
-## 테스트 파일 형식
-
-```
-// --- Command: <실행할 명령어>
+// --- Command: gcc -o %output %input && %output
 // --- Input:
-<소스 코드>
+#include <stdio.h>
+int main() {
+    printf("Hello from C!\n");
+    return 0;
+}
 // --- Output:
-<기대 출력>
+Hello from C!
 ```
 
-### 변수
+Running:
+```bash
+$ fslit tests/
+PASS: echo.flt
+PASS: input.flt
 
-| 변수 | 설명 |
-|------|------|
-| `%input` | Input 내용이 저장된 임시 파일 |
-| `%output` | Output 내용이 저장된 임시 파일 |
-| `%s` | 테스트 파일 경로 |
-| `%S` | 테스트 파일 디렉토리 |
+Results: 2/2 passed
+```
 
-## 문서
+## Test File Format
 
-- [설치 가이드](docs/install.md)
-- [빌드 가이드](docs/build.md)
-- [사용 가이드](docs/usage.md)
-- [설계 문서](docs/design.md)
-- [튜토리얼](docs/howto/README.md) - 처음부터 만들어보기
+```
+// --- Command: <command to execute>
+// --- Input:
+<source code>
+// --- Output:
+<expected output>
+```
 
-## 라이선스
+### Variables
+
+| Variable | Description |
+|----------|-------------|
+| `%input` | Temporary file containing Input content |
+| `%output` | Temporary file for Output |
+| `%s` | Test file path |
+| `%S` | Test file directory |
+
+## Documentation
+
+- [Installation Guide](docs/install.md)
+- [Build Guide](docs/build.md)
+- [Usage Guide](docs/usage.md)
+- [Design Document](docs/design.md)
+- [Tutorial](docs/howto/README.md) - Step-by-step guide
+
+## License
 
 MIT
