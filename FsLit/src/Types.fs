@@ -25,7 +25,7 @@ type CheckResult =
 
 type TestResult =
     | Pass
-    | Fail of CheckResult list
+    | Fail of errors: CheckResult list * actualStdout: string * actualStderr: string * actualExitCode: int
     | Error of message: string
 
 type TestReport = {
