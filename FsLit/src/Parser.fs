@@ -7,12 +7,14 @@ open FsLit.Types
 let private commandPrefix = "// --- Command:"
 let private inputPrefix = "// --- Input:"
 let private outputPrefix = "// --- Output:"
+let private stderrPrefix = "// --- Stderr:"
 let private exitCodePrefix = "// --- ExitCode:"
 
 type private Section =
     | CommandSection
     | InputSection
     | OutputSection
+    | StderrSection
     | ExitCodeSection
     | NoSection
 
@@ -26,6 +28,8 @@ let private detectSection (line: string) : Section * string option =
         (InputSection, Option.None)
     elif trimmed.StartsWith(outputPrefix) then
         (OutputSection, Option.None)
+    elif trimmed.StartsWith(stderrPrefix) then
+        (StderrSection, Option.None)
     else
         (NoSection, Option.None)
 
@@ -36,6 +40,7 @@ let parseContent (content: string) : Result<TestCase, string> =
     let mutable exitCode: int option = Option.None
     let mutable inputLines = ResizeArray<string>()
     let mutable outputLines = ResizeArray<string>()
+    let mutable stderrLines = ResizeArray<string>()
     let mutable currentSection = NoSection
 
     for line in lines do
@@ -56,10 +61,13 @@ let parseContent (content: string) : Result<TestCase, string> =
             currentSection <- InputSection
         | OutputSection ->
             currentSection <- OutputSection
+        | StderrSection ->
+            currentSection <- StderrSection
         | NoSection ->
             match currentSection with
             | InputSection -> inputLines.Add(line)
             | OutputSection -> outputLines.Add(line)
+            | StderrSection -> stderrLines.Add(line)
             | _ -> ()
 
     match command with
@@ -78,10 +86,18 @@ let parseContent (content: string) : Result<TestCase, string> =
             |> List.skipWhile String.IsNullOrEmpty
             |> List.rev
 
+        let stderr =
+            stderrLines
+            |> Seq.toList
+            |> List.rev
+            |> List.skipWhile String.IsNullOrEmpty
+            |> List.rev
+
         Ok {
             Command = cmd
             Input = input
             ExpectedOutput = output
+            ExpectedStderr = stderr
             ExpectedExitCode = exitCode
         }
 

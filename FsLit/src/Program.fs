@@ -19,8 +19,9 @@ let private runTestCase (testFilePath: string) (testCase: TestCase) : TestResult
             Error msg
         | Ok runResult ->
             let outputErrors = check testCase.ExpectedOutput runResult.Stdout
+            let stderrErrors = checkStderr testCase.ExpectedStderr runResult.Stderr
             let exitCodeErrors = checkExitCode testCase.ExpectedExitCode runResult.ExitCode
-            let allErrors = outputErrors @ exitCodeErrors
+            let allErrors = outputErrors @ stderrErrors @ exitCodeErrors
             if allErrors.IsEmpty then
                 Pass
             else

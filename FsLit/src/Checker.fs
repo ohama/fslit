@@ -39,6 +39,14 @@ let checkExitCode (expectedExitCode: int option) (actualExitCode: int) : CheckRe
         else
             [ExitCodeMismatch(expected, actualExitCode)]
 
+let checkStderr (expected: string list) (actual: string) : CheckResult list =
+    let actualLines = splitLines actual
+
+    expected
+    |> List.filter (fun expectedLine ->
+        not (actualLines |> List.exists (fun actualLine -> actualLine = expectedLine)))
+    |> List.map StderrMissing
+
 let formatResult (result: CheckResult) : string =
     match result with
     | Match -> ""
@@ -50,3 +58,5 @@ let formatResult (result: CheckResult) : string =
         sprintf "  Line %d: unexpected output \"%s\"" lineNum actual
     | ExitCodeMismatch(expected, actual) ->
         sprintf "  Exit code: expected %d, got %d" expected actual
+    | StderrMissing(expected) ->
+        sprintf "  Stderr: expected \"%s\" but not found in output" expected
