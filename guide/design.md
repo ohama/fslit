@@ -67,6 +67,7 @@ fslit --filter 'echo*' tests/
 확장자: `.flt`
 
 ```
+// Test: <테스트 목적 설명>
 // --- Command: <실행할 명령어>
 // --- Input:
 <컴파일러/인터프리터에 전달할 소스 코드>
@@ -82,6 +83,7 @@ fslit --filter 'echo*' tests/
 
 | 디렉티브 | 필수 | 설명 |
 |----------|------|------|
+| `// Test:` | X | 테스트 목적 설명 (첫 줄 주석) |
 | `// --- Command:` | O | 실행할 명령어 |
 | `// --- Input:` | X | 소스 코드 (임시 파일로 저장됨) |
 | `// --- Output:` | X | 기대 stdout (줄 단위 정확 일치) |
@@ -103,6 +105,7 @@ fslit --filter 'echo*' tests/
 ### 기본 예제
 
 ```
+// Test: 기본 echo 명령이 기대한 stdout을 출력하는지 검증
 // --- Command: echo "hello"
 // --- Output:
 hello
@@ -111,6 +114,7 @@ hello
 ### Python 테스트
 
 ```
+// Test: Python 스크립트를 %input으로 실행하여 출력 검증
 // --- Command: python3 %input
 // --- Input:
 print(1 + 2)
@@ -121,6 +125,7 @@ print(1 + 2)
 ### 종료 코드 + Stderr 테스트
 
 ```
+// Test: ExitCode와 Stderr 디렉티브로 에러 처리 검증
 // --- Command: sh -c 'echo "error output" >&2; exit 42'
 // --- ExitCode: 42
 // --- Stderr:
@@ -130,6 +135,7 @@ error output
 ### 종합 테스트
 
 ```
+// Test: 모든 디렉티브 (Command, Input, Output, ExitCode, Stderr, Timeout) 종합 검증
 // --- Command: sh -c 'cat %input; echo "warning" >&2; exit 1'
 // --- Input:
 hello

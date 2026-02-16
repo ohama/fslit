@@ -10,6 +10,7 @@
 - 파일 형식 이해:
 
 ```
+// Test: <test objective description>
 // --- Command: echo "hello"
 // --- Input:
 source code here
@@ -119,6 +120,7 @@ let parseFile (path: string) =
 
 테스트 파일 (`test.flt`):
 ```
+// Test: echo 명령이 기대한 출력을 생성하는지 검증
 // --- Command: echo "hello"
 // --- Output:
 hello

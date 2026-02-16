@@ -100,6 +100,7 @@ let runTest (testCase: TestCase) =
 
 성공 케이스:
 ```
+// Test: echo 출력이 기대값과 일치하면 PASS
 // --- Command: echo "hello"
 // --- Output:
 hello
@@ -107,6 +108,7 @@ hello
 
 실패 케이스:
 ```
+// Test: 실제 출력과 기대 출력이 불일치하면 FAIL
 // --- Command: echo "actual"
 // --- Output:
 expected

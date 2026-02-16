@@ -49,6 +49,7 @@ fslit [options] <test-file-or-directory>
 
 `echo.flt`:
 ```
+// Test: 기본 echo 명령이 기대한 stdout을 출력하는지 검증
 // --- Command: echo "hello world"
 // --- Output:
 hello world
@@ -58,6 +59,7 @@ hello world
 
 `input.flt`:
 ```
+// Test: %input 변수가 Input 섹션을 임시 파일로 전달하는지 검증
 // --- Command: cat %input
 // --- Input:
 line1
@@ -73,6 +75,7 @@ line3
 
 `error.flt`:
 ```
+// Test: ExitCode와 Stderr 디렉티브로 에러 처리 검증
 // --- Command: sh -c 'echo "error output" >&2; exit 42'
 // --- ExitCode: 42
 // --- Stderr:
@@ -83,6 +86,7 @@ error output
 
 `full.flt`:
 ```
+// Test: 모든 디렉티브 (Command, Input, Output, ExitCode, Stderr, Timeout) 종합 검증
 // --- Command: sh -c 'cat %input; echo "warning" >&2; exit 1'
 // --- Input:
 hello
@@ -111,6 +115,7 @@ Results: 1/1 passed
 ## 테스트 파일 형식
 
 ```
+// Test: <테스트 목적 설명>
 // --- Command: <실행할 명령어>
 // --- Input:
 <소스 코드>
@@ -126,6 +131,7 @@ Results: 1/1 passed
 
 | 디렉티브 | 필수 | 설명 |
 |----------|------|------|
+| `// Test:` | X | 테스트 목적 설명 (첫 줄 주석) |
 | `// --- Command:` | O | 실행할 셸 명령어 |
 | `// --- Input:` | X | 임시 파일로 저장될 소스 코드 |
 | `// --- Output:` | X | 기대 stdout (줄 단위 정확 일치) |

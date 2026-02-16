@@ -49,6 +49,7 @@ fslit [options] <test-file-or-directory>
 
 `echo.flt`:
 ```
+// Test: basic echo command produces expected stdout output
 // --- Command: echo "hello world"
 // --- Output:
 hello world
@@ -58,6 +59,7 @@ hello world
 
 `input.flt`:
 ```
+// Test: %input variable passes Input section as temp file to command
 // --- Command: cat %input
 // --- Input:
 line1
@@ -73,6 +75,7 @@ line3
 
 `error.flt`:
 ```
+// Test: ExitCode and Stderr directives verify error handling
 // --- Command: sh -c 'echo "error output" >&2; exit 42'
 // --- ExitCode: 42
 // --- Stderr:
@@ -83,6 +86,7 @@ error output
 
 `full.flt`:
 ```
+// Test: all directives (Command, Input, Output, ExitCode, Stderr, Timeout) work together
 // --- Command: sh -c 'cat %input; echo "warning" >&2; exit 1'
 // --- Input:
 hello
@@ -111,6 +115,7 @@ Results: 1/1 passed
 ## Test File Format
 
 ```
+// Test: <test objective description>
 // --- Command: <command to execute>
 // --- Input:
 <source code>
@@ -126,6 +131,7 @@ Results: 1/1 passed
 
 | Directive | Required | Description |
 |-----------|----------|-------------|
+| `// Test:` | No | Test objective description (first line comment) |
 | `// --- Command:` | Yes | Shell command to execute |
 | `// --- Input:` | No | Source code saved to temp file |
 | `// --- Output:` | No | Expected stdout (line-by-line exact match) |

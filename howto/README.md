@@ -28,6 +28,7 @@ F#으로 테스트 러너를 만드는 단계별 가이드입니다.
 이 튜토리얼을 완료하면 다음과 같은 테스트 파일을 실행할 수 있는 도구를 만들게 됩니다:
 
 ```
+// Test: Python 스크립트를 %input으로 실행하여 출력 검증
 // --- Command: python3 %input
 // --- Input:
 print("Hello, World!")
@@ -38,6 +39,7 @@ Hello, World!
 v0.3.0에서는 종료 코드, stderr, 타임아웃 검증과 --verbose, --filter 플래그도 지원합니다:
 
 ```
+// Test: 모든 디렉티브 (Command, Input, Output, ExitCode, Stderr, Timeout) 종합 검증
 // --- Command: sh -c 'cat %input; echo "warning" >&2; exit 1'
 // --- Input:
 hello

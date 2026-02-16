@@ -38,6 +38,7 @@ fslit --verbose --filter 'exitcode-*' tests/
 ### 기본 구조
 
 ```
+// Test: <테스트 목적 설명>
 // --- Command: <실행할 명령어>
 // --- Input:
 <입력 내용>
@@ -53,6 +54,7 @@ fslit --verbose --filter 'exitcode-*' tests/
 
 | 디렉티브 | 필수 | 설명 |
 |----------|------|------|
+| `// Test:` | X | 테스트 목적 설명 (첫 줄 주석) |
 | `// --- Command:` | O | 실행할 셸 명령어 |
 | `// --- Input:` | X | 임시 파일로 저장될 입력 내용 |
 | `// --- Output:` | X | 기대하는 stdout (줄 단위 정확 일치) |
@@ -74,6 +76,7 @@ fslit --verbose --filter 'exitcode-*' tests/
 ### 1. 단순 명령어 테스트
 
 ```
+// Test: 기본 echo 명령이 기대한 stdout을 출력하는지 검증
 // --- Command: echo "hello world"
 // --- Output:
 hello world
@@ -82,6 +85,7 @@ hello world
 ### 2. 파일 입력 테스트
 
 ```
+// Test: %input 변수가 Input 섹션을 임시 파일로 전달하는지 검증
 // --- Command: cat %input
 // --- Input:
 line 1
@@ -96,6 +100,7 @@ line 3
 ### 3. Python 스크립트 테스트
 
 ```
+// Test: Python 스크립트를 %input으로 실행하여 출력 검증
 // --- Command: python3 %input
 // --- Input:
 for i in range(3):
@@ -109,6 +114,7 @@ count: 2
 ### 4. 종료 코드 테스트
 
 ```
+// Test: ExitCode 디렉티브가 비정상 종료 코드를 올바르게 검증
 // --- Command: sh -c 'exit 42'
 // --- ExitCode: 42
 ```
@@ -116,6 +122,7 @@ count: 2
 ### 5. Stderr 테스트
 
 ```
+// Test: Stderr 디렉티브가 에러 출력을 contains-match로 검증
 // --- Command: sh -c 'echo "warning: deprecated" >&2'
 // --- Stderr:
 warning: deprecated
@@ -127,6 +134,7 @@ Stderr는 contains-match 방식으로, 기대하는 각 라인이 실제 stderr�
 ### 6. 타임아웃 테스트
 
 ```
+// Test: Timeout 내 완료되는 명령이 정상 통과하는지 검증
 // --- Command: sh -c 'sleep 1; echo done'
 // --- Output:
 done
@@ -138,6 +146,7 @@ done
 ### 7. 종합 테스트 (모든 디렉티브 사용)
 
 ```
+// Test: 모든 디렉티브 (Command, Input, Output, ExitCode, Stderr, Timeout) 종합 검증
 // --- Command: sh -c 'cat %input; echo "error output" >&2; exit 42'
 // --- Input:
 Hello from integration test
@@ -152,6 +161,7 @@ error output
 ### 8. 컴파일러 테스트
 
 ```
+// Test: C 소스를 컴파일하고 실행하여 출력 검증
 // --- Command: gcc %input -o /tmp/a.out && /tmp/a.out
 // --- Input:
 #include <stdio.h>

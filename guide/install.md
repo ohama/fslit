@@ -119,6 +119,7 @@ Arguments:
   <path>           Test file (.flt) or directory containing test files
 
 Test File Format:
+  // Test: <test objective>   (optional, first line comment)
   // --- Command: <command>
   // --- Input:
   <source code>
