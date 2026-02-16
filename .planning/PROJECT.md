@@ -2,7 +2,7 @@
 
 ## What This Is
 
-FsLit is an F# test runner inspired by LLVM lit, designed for compiler and interpreter testing. It reads `.flt` test files with embedded command, input, and expected output sections, then executes and verifies them. Currently at v0.2.0 with basic command execution, input substitution, and exact output matching.
+FsLit is an F# test runner inspired by LLVM lit, designed for compiler and interpreter testing. It reads `.flt` test files with embedded directives for command execution, input, expected output, exit code, stderr, and timeout — then executes and verifies them. At v0.3.0 with comprehensive test verification, verbose debugging, and test filtering.
 
 ## Core Value
 
@@ -19,14 +19,15 @@ Reliable, declarative test verification — a test file fully describes what to 
 - ✓ Cross-platform support (Windows cmd.exe / Unix sh) — existing
 - ✓ Temp file management for input/output — existing
 - ✓ `--help` flag — existing
+- ✓ Exit code checking via `// --- ExitCode: N` directive (ignore if unspecified) — v0.3.0
+- ✓ Stderr checking via `// --- Stderr:` section (contains-match) — v0.3.0
+- ✓ Timeout support via `// --- Timeout: N` directive (kill after N seconds) — v0.3.0
+- ✓ `--verbose` flag showing actual vs expected output on failure — v0.3.0
+- ✓ `--filter <glob>` flag for targeted test execution — v0.3.0
 
 ### Active
 
-- [ ] Exit code checking via `// --- ExitCode: N` directive (ignore if unspecified)
-- [ ] Stderr checking via `// --- Stderr:` section (contains-match: expected lines must appear, extra OK)
-- [ ] Timeout support via `// --- Timeout: N` directive (kill command after N seconds)
-- [ ] `--verbose` flag to show actual vs expected output on failure
-- [ ] `--filter` flag with glob pattern to run subset of tests
+(None — next milestone requirements TBD)
 
 ### Out of Scope
 
@@ -39,10 +40,11 @@ Reliable, declarative test verification — a test file fully describes what to 
 ## Context
 
 - F# on .NET 10, built with `dotnet build`
-- 6 source modules: Types, Parser, Runner, Checker, Substitution, Program
-- Runner already captures ExitCode and Stderr but they're unused
-- Parser uses mutable state (imperative style) — functional refactor deferred
-- 2 existing test files (echo.flt, input.flt)
+- 6 source modules: Types, Parser, Runner, Checker, Substitution, Program (527 LOC)
+- 12 test files covering all directives and CLI flags
+- All directives use Option types for backward compatibility (None = don't check)
+- TestResult.Fail carries actual output data for verbose display
+- Glob-to-regex conversion for test filtering with case-insensitive matching
 
 ## Constraints
 
@@ -54,9 +56,12 @@ Reliable, declarative test verification — a test file fully describes what to 
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Exit code ignored when unspecified | Backward compatibility — existing tests don't specify exit codes | — Pending |
-| Stderr uses contains-match | Stderr often has extra noise (warnings, debug info); exact match too brittle | — Pending |
-| Filter uses glob patterns | More flexible than substring, familiar to CLI users | — Pending |
+| Exit code ignored when unspecified | Backward compatibility — existing tests don't specify exit codes | ✓ Good |
+| Stderr uses contains-match | Stderr often has extra noise (warnings, debug info); exact match too brittle | ✓ Good |
+| Filter uses glob patterns | More flexible than substring, familiar to CLI users | ✓ Good |
+| Timeout uses Process.WaitForExit(ms) + Kill | Simple, reliable, no external dependencies | ✓ Good |
+| TestResult.Fail extended with actual output | Enables verbose mode without separate data structure | ✓ Good |
+| Glob-to-regex with case-insensitive matching | Intuitive for users, handles edge cases via try-catch | ✓ Good |
 
 ---
-*Last updated: 2026-02-16 after initialization*
+*Last updated: 2026-02-16 after v0.3.0 milestone*
