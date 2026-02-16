@@ -47,11 +47,14 @@ let checkStderr (expected: string list) (actual: string) : CheckResult list =
         not (actualLines |> List.exists (fun actualLine -> actualLine = expectedLine)))
     |> List.map StderrMissing
 
-let formatResult (result: CheckResult) : string =
+let formatResult (verbose: bool) (result: CheckResult) : string =
     match result with
     | Match -> ""
     | Mismatch(lineNum, expected, actual) ->
-        sprintf "  Line %d: expected \"%s\", got \"%s\"" lineNum expected actual
+        if verbose then
+            sprintf "  Line %d mismatch:\n    Expected: \"%s\"\n    Actual:   \"%s\"" lineNum expected actual
+        else
+            sprintf "  Line %d: expected \"%s\", got \"%s\"" lineNum expected actual
     | MissingLine(lineNum, expected) ->
         sprintf "  Line %d: expected \"%s\", but no more output" lineNum expected
     | ExtraOutput(lineNum, actual) ->
