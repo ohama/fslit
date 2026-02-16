@@ -1,0 +1,6 @@
+// --- Command: echo "error: test failed" >&2
+// --- Stderr:
+error: test failed
+warning: this line is missing
+// --- Output:
+
