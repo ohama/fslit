@@ -1,3 +1,5 @@
+// Test: command exceeds timeout and is killed
+// Expected: FAIL with "Command timed out after 1 seconds"
 // --- Command: sleep 3
 // --- Timeout: 1
 // --- Output:
