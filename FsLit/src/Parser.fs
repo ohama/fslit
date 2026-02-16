@@ -18,6 +18,13 @@ type private Section =
     | ExitCodeSection
     | NoSection
 
+let private normalizeLines (lines: ResizeArray<string>) : string list =
+    lines
+    |> Seq.toList
+    |> List.rev
+    |> List.skipWhile String.IsNullOrEmpty
+    |> List.rev
+
 let private detectSection (line: string) : Section * string option =
     let trimmed = line.Trim()
     if trimmed.StartsWith(commandPrefix) then
@@ -79,19 +86,8 @@ let parseContent (content: string) : Result<TestCase, string> =
             else
                 Option.None
 
-        let output =
-            outputLines
-            |> Seq.toList
-            |> List.rev
-            |> List.skipWhile String.IsNullOrEmpty
-            |> List.rev
-
-        let stderr =
-            stderrLines
-            |> Seq.toList
-            |> List.rev
-            |> List.skipWhile String.IsNullOrEmpty
-            |> List.rev
+        let output = normalizeLines outputLines
+        let stderr = normalizeLines stderrLines
 
         Ok {
             Command = cmd
