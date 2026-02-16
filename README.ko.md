@@ -1,6 +1,6 @@
 # FsLit
 
-![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)
 ![F#](https://img.shields.io/badge/F%23-.NET%2010-purple.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
@@ -17,8 +17,20 @@ make test     # 테스트 실행
 
 # 또는 dotnet 직접 사용
 dotnet build FsLit/FsLit.fsproj
-dotnet run --project FsLit/FsLit.fsproj -- tests/
+dotnet run --project FsLit -- tests/
 ```
+
+## CLI 옵션
+
+```bash
+fslit [options] <test-file-or-directory>
+```
+
+| 옵션 | 설명 |
+|------|------|
+| `-h, --help` | 도움말 표시 |
+| `-v, --verbose` | 실패 시 실제 출력 vs 기대 출력 표시 |
+| `-f, --filter <pattern>` | 글로브 패턴으로 테스트 필터링 (예: `'echo*'`) |
 
 ## Makefile 명령어
 
@@ -57,39 +69,43 @@ line2
 line3
 ```
 
-### 예시 3: Python 스크립트 테스트
+### 예시 3: 종료 코드와 Stderr
 
-`hello.flt`:
+`error.flt`:
 ```
-// --- Command: python3 %input
+// --- Command: sh -c 'echo "error output" >&2; exit 42'
+// --- ExitCode: 42
+// --- Stderr:
+error output
+```
+
+### 예시 4: 종합 테스트
+
+`full.flt`:
+```
+// --- Command: sh -c 'cat %input; echo "warning" >&2; exit 1'
 // --- Input:
-print("Hello, World!")
+hello
 // --- Output:
-Hello, World!
-```
-
-### 예시 4: 컴파일러 테스트
-
-`compile.flt`:
-```
-// --- Command: gcc -o %output %input && %output
-// --- Input:
-#include <stdio.h>
-int main() {
-    printf("Hello from C!\n");
-    return 0;
-}
-// --- Output:
-Hello from C!
+hello
+// --- ExitCode: 1
+// --- Stderr:
+warning
+// --- Timeout: 5
 ```
 
 실행:
 ```bash
 $ fslit tests/
-PASS: echo.flt
-PASS: input.flt
+PASS: tests/echo.flt
+PASS: tests/input.flt
 
 Results: 2/2 passed
+
+$ fslit --verbose --filter 'echo*' tests/
+PASS: tests/echo.flt
+
+Results: 1/1 passed
 ```
 
 ## 테스트 파일 형식
@@ -100,7 +116,22 @@ Results: 2/2 passed
 <소스 코드>
 // --- Output:
 <기대 출력>
+// --- ExitCode: N          (선택, 미지정 시 검사 안 함)
+// --- Stderr:              (선택, contains-match)
+<기대 stderr 라인>
+// --- Timeout: N           (선택, 초 단위)
 ```
+
+### 디렉티브
+
+| 디렉티브 | 필수 | 설명 |
+|----------|------|------|
+| `// --- Command:` | O | 실행할 셸 명령어 |
+| `// --- Input:` | X | 임시 파일로 저장될 소스 코드 |
+| `// --- Output:` | X | 기대 stdout (줄 단위 정확 일치) |
+| `// --- ExitCode: N` | X | 기대 종료 코드 (미지정 시 검사 안 함) |
+| `// --- Stderr:` | X | 기대 stderr (contains-match) |
+| `// --- Timeout: N` | X | 타임아웃 초 (미지정 시 제한 없음) |
 
 ### 변수
 
@@ -113,11 +144,11 @@ Results: 2/2 passed
 
 ## 문서
 
-- [설치 가이드](docs/install.md)
-- [빌드 가이드](docs/build.md)
-- [사용 가이드](docs/usage.md)
-- [설계 문서](docs/design.md)
-- [튜토리얼](docs/howto/README.md) - 처음부터 만들어보기
+- [설치 가이드](guide/install.md)
+- [빌드 가이드](guide/build.md)
+- [사용 가이드](guide/usage.md)
+- [설계 문서](guide/design.md)
+- [튜토리얼](howto/README.md) - 처음부터 만들어보기
 
 ## 라이선스
 

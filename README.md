@@ -1,6 +1,6 @@
 # FsLit
 
-![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)
 ![F#](https://img.shields.io/badge/F%23-.NET%2010-purple.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
@@ -17,8 +17,20 @@ make test     # Run tests
 
 # Or use dotnet directly
 dotnet build FsLit/FsLit.fsproj
-dotnet run --project FsLit/FsLit.fsproj -- tests/
+dotnet run --project FsLit -- tests/
 ```
+
+## CLI Options
+
+```bash
+fslit [options] <test-file-or-directory>
+```
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | Show help message |
+| `-v, --verbose` | Show actual vs expected output on failure |
+| `-f, --filter <pattern>` | Run only tests matching glob pattern (e.g., `'echo*'`) |
 
 ## Makefile Commands
 
@@ -57,39 +69,43 @@ line2
 line3
 ```
 
-### Example 3: Python Script Test
+### Example 3: Exit Code and Stderr
 
-`hello.flt`:
+`error.flt`:
 ```
-// --- Command: python3 %input
+// --- Command: sh -c 'echo "error output" >&2; exit 42'
+// --- ExitCode: 42
+// --- Stderr:
+error output
+```
+
+### Example 4: Comprehensive Test
+
+`full.flt`:
+```
+// --- Command: sh -c 'cat %input; echo "warning" >&2; exit 1'
 // --- Input:
-print("Hello, World!")
+hello
 // --- Output:
-Hello, World!
-```
-
-### Example 4: Compiler Test
-
-`compile.flt`:
-```
-// --- Command: gcc -o %output %input && %output
-// --- Input:
-#include <stdio.h>
-int main() {
-    printf("Hello from C!\n");
-    return 0;
-}
-// --- Output:
-Hello from C!
+hello
+// --- ExitCode: 1
+// --- Stderr:
+warning
+// --- Timeout: 5
 ```
 
 Running:
 ```bash
 $ fslit tests/
-PASS: echo.flt
-PASS: input.flt
+PASS: tests/echo.flt
+PASS: tests/input.flt
 
 Results: 2/2 passed
+
+$ fslit --verbose --filter 'echo*' tests/
+PASS: tests/echo.flt
+
+Results: 1/1 passed
 ```
 
 ## Test File Format
@@ -100,7 +116,22 @@ Results: 2/2 passed
 <source code>
 // --- Output:
 <expected output>
+// --- ExitCode: N          (optional, default: not checked)
+// --- Stderr:              (optional, contains-match)
+<expected stderr lines>
+// --- Timeout: N           (optional, seconds)
 ```
+
+### Directives
+
+| Directive | Required | Description |
+|-----------|----------|-------------|
+| `// --- Command:` | Yes | Shell command to execute |
+| `// --- Input:` | No | Source code saved to temp file |
+| `// --- Output:` | No | Expected stdout (line-by-line exact match) |
+| `// --- ExitCode: N` | No | Expected exit code (not checked if absent) |
+| `// --- Stderr:` | No | Expected stderr lines (contains-match) |
+| `// --- Timeout: N` | No | Timeout in seconds (no timeout if absent) |
 
 ### Variables
 
@@ -113,11 +144,11 @@ Results: 2/2 passed
 
 ## Documentation
 
-- [Installation Guide](docs/install.md)
-- [Build Guide](docs/build.md)
-- [Usage Guide](docs/usage.md)
-- [Design Document](docs/design.md)
-- [Tutorial](docs/howto/README.md) - Step-by-step guide
+- [Installation Guide](guide/install.md)
+- [Build Guide](guide/build.md)
+- [Usage Guide](guide/usage.md)
+- [Design Document](guide/design.md)
+- [Tutorial](howto/README.md) - Step-by-step guide
 
 ## License
 
