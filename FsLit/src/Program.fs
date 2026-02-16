@@ -18,11 +18,13 @@ let private runTestCase (testFilePath: string) (testCase: TestCase) : TestResult
         | Result.Error msg ->
             Error msg
         | Ok runResult ->
-            let errors = check testCase.ExpectedOutput runResult.Stdout
-            if errors.IsEmpty then
+            let outputErrors = check testCase.ExpectedOutput runResult.Stdout
+            let exitCodeErrors = checkExitCode testCase.ExpectedExitCode runResult.ExitCode
+            let allErrors = outputErrors @ exitCodeErrors
+            if allErrors.IsEmpty then
                 Pass
             else
-                Fail errors
+                Fail allErrors
     finally
         cleanupTempFiles tempFiles
 

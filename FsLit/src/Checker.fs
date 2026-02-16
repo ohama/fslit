@@ -30,6 +30,15 @@ let check (expected: string list) (actual: string) : CheckResult list =
     let results = loop 1 expected actualLines []
     results |> List.rev |> List.filter (fun r -> r <> Match)
 
+let checkExitCode (expectedExitCode: int option) (actualExitCode: int) : CheckResult list =
+    match expectedExitCode with
+    | None -> []
+    | Some expected ->
+        if expected = actualExitCode then
+            []
+        else
+            [ExitCodeMismatch(expected, actualExitCode)]
+
 let formatResult (result: CheckResult) : string =
     match result with
     | Match -> ""
@@ -39,3 +48,5 @@ let formatResult (result: CheckResult) : string =
         sprintf "  Line %d: expected \"%s\", but no more output" lineNum expected
     | ExtraOutput(lineNum, actual) ->
         sprintf "  Line %d: unexpected output \"%s\"" lineNum actual
+    | ExitCodeMismatch(expected, actual) ->
+        sprintf "  Exit code: expected %d, got %d" expected actual

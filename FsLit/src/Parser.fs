@@ -7,17 +7,21 @@ open FsLit.Types
 let private commandPrefix = "// --- Command:"
 let private inputPrefix = "// --- Input:"
 let private outputPrefix = "// --- Output:"
+let private exitCodePrefix = "// --- ExitCode:"
 
 type private Section =
     | CommandSection
     | InputSection
     | OutputSection
+    | ExitCodeSection
     | NoSection
 
 let private detectSection (line: string) : Section * string option =
     let trimmed = line.Trim()
     if trimmed.StartsWith(commandPrefix) then
         (CommandSection, Some (trimmed.Substring(commandPrefix.Length).Trim()))
+    elif trimmed.StartsWith(exitCodePrefix) then
+        (ExitCodeSection, Some (trimmed.Substring(exitCodePrefix.Length).Trim()))
     elif trimmed.StartsWith(inputPrefix) then
         (InputSection, Option.None)
     elif trimmed.StartsWith(outputPrefix) then
@@ -29,6 +33,7 @@ let parseContent (content: string) : Result<TestCase, string> =
     let lines = content.Split([| '\n' |], StringSplitOptions.None)
 
     let mutable command: string option = Option.None
+    let mutable exitCode: int option = Option.None
     let mutable inputLines = ResizeArray<string>()
     let mutable outputLines = ResizeArray<string>()
     let mutable currentSection = NoSection
@@ -39,6 +44,15 @@ let parseContent (content: string) : Result<TestCase, string> =
         | CommandSection ->
             command <- value
             currentSection <- CommandSection
+        | ExitCodeSection ->
+            exitCode <-
+                match value with
+                | Some v ->
+                    match System.Int32.TryParse(v) with
+                    | (true, num) -> Some num
+                    | _ -> Option.None
+                | Option.None -> Option.None
+            currentSection <- ExitCodeSection
         | InputSection ->
             currentSection <- InputSection
         | OutputSection ->
@@ -69,6 +83,7 @@ let parseContent (content: string) : Result<TestCase, string> =
             Command = cmd
             Input = input
             ExpectedOutput = output
+            ExpectedExitCode = exitCode
         }
 
 let parseFile (path: string) : Result<TestFile, string> =

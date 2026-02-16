@@ -4,6 +4,7 @@ type TestCase = {
     Command: string
     Input: string option
     ExpectedOutput: string list
+    ExpectedExitCode: int option
 }
 
 type TestFile = {
@@ -16,6 +17,7 @@ type CheckResult =
     | Mismatch of lineNum: int * expected: string * actual: string
     | MissingLine of lineNum: int * expected: string
     | ExtraOutput of lineNum: int * actual: string
+    | ExitCodeMismatch of expected: int * actual: int
 
 type TestResult =
     | Pass
