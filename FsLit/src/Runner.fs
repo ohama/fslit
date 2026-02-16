@@ -7,9 +7,10 @@ type RunResult = {
     ExitCode: int
     Stdout: string
     Stderr: string
+    TimedOut: bool
 }
 
-let run (command: string) : Result<RunResult, string> =
+let run (command: string) (timeoutSeconds: int option) : Result<RunResult, string> =
     try
         let isWindows = OperatingSystem.IsWindows()
         let shell, shellArg =
@@ -40,12 +41,25 @@ let run (command: string) : Result<RunResult, string> =
         proc.Start() |> ignore
         proc.BeginOutputReadLine()
         proc.BeginErrorReadLine()
-        proc.WaitForExit()
+
+        let timedOut =
+            match timeoutSeconds with
+            | None ->
+                proc.WaitForExit()
+                false
+            | Some seconds ->
+                let timeoutMs = seconds * 1000
+                let completed = proc.WaitForExit(timeoutMs)
+                if not completed then
+                    proc.Kill()
+                    proc.WaitForExit()
+                not completed
 
         Ok {
             ExitCode = proc.ExitCode
             Stdout = stdout.ToString().TrimEnd('\r', '\n')
             Stderr = stderr.ToString().TrimEnd('\r', '\n')
+            TimedOut = timedOut
         }
     with
     | ex -> Result.Error (sprintf "Failed to run command: %s" ex.Message)

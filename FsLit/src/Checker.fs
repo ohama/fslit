@@ -60,3 +60,5 @@ let formatResult (result: CheckResult) : string =
         sprintf "  Exit code: expected %d, got %d" expected actual
     | StderrMissing(expected) ->
         sprintf "  Stderr: expected \"%s\" but not found in output" expected
+    | TimeoutExceeded(seconds) ->
+        sprintf "  Command timed out after %d seconds" seconds

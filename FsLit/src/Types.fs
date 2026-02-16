@@ -6,6 +6,7 @@ type TestCase = {
     ExpectedOutput: string list
     ExpectedStderr: string list
     ExpectedExitCode: int option
+    Timeout: int option
 }
 
 type TestFile = {
@@ -20,6 +21,7 @@ type CheckResult =
     | ExtraOutput of lineNum: int * actual: string
     | ExitCodeMismatch of expected: int * actual: int
     | StderrMissing of expected: string
+    | TimeoutExceeded of seconds: int
 
 type TestResult =
     | Pass

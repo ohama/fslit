@@ -9,6 +9,7 @@ let private inputPrefix = "// --- Input:"
 let private outputPrefix = "// --- Output:"
 let private stderrPrefix = "// --- Stderr:"
 let private exitCodePrefix = "// --- ExitCode:"
+let private timeoutPrefix = "// --- Timeout:"
 
 type private Section =
     | CommandSection
@@ -16,6 +17,7 @@ type private Section =
     | OutputSection
     | StderrSection
     | ExitCodeSection
+    | TimeoutSection
     | NoSection
 
 let private normalizeLines (lines: ResizeArray<string>) : string list =
@@ -31,6 +33,8 @@ let private detectSection (line: string) : Section * string option =
         (CommandSection, Some (trimmed.Substring(commandPrefix.Length).Trim()))
     elif trimmed.StartsWith(exitCodePrefix) then
         (ExitCodeSection, Some (trimmed.Substring(exitCodePrefix.Length).Trim()))
+    elif trimmed.StartsWith(timeoutPrefix) then
+        (TimeoutSection, Some (trimmed.Substring(timeoutPrefix.Length).Trim()))
     elif trimmed.StartsWith(inputPrefix) then
         (InputSection, Option.None)
     elif trimmed.StartsWith(outputPrefix) then
@@ -45,6 +49,7 @@ let parseContent (content: string) : Result<TestCase, string> =
 
     let mutable command: string option = Option.None
     let mutable exitCode: int option = Option.None
+    let mutable timeout: int option = Option.None
     let mutable inputLines = ResizeArray<string>()
     let mutable outputLines = ResizeArray<string>()
     let mutable stderrLines = ResizeArray<string>()
@@ -64,6 +69,14 @@ let parseContent (content: string) : Result<TestCase, string> =
                     | true, num -> Some num
                     | _ -> None)
             currentSection <- ExitCodeSection
+        | TimeoutSection ->
+            timeout <-
+                value
+                |> Option.bind (fun v ->
+                    match System.Int32.TryParse(v) with
+                    | true, num -> Some num
+                    | _ -> None)
+            currentSection <- TimeoutSection
         | InputSection ->
             currentSection <- InputSection
         | OutputSection ->
@@ -95,6 +108,7 @@ let parseContent (content: string) : Result<TestCase, string> =
             ExpectedOutput = output
             ExpectedStderr = stderr
             ExpectedExitCode = exitCode
+            Timeout = timeout
         }
 
 let parseFile (path: string) : Result<TestFile, string> =

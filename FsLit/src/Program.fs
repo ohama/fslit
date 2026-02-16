@@ -14,18 +14,22 @@ let private runTestCase (testFilePath: string) (testCase: TestCase) : TestResult
     try
         let command = substitute testCase.Command testFilePath tempFiles
 
-        match run command with
+        match run command testCase.Timeout with
         | Result.Error msg ->
             Error msg
         | Ok runResult ->
-            let outputErrors = check testCase.ExpectedOutput runResult.Stdout
-            let stderrErrors = checkStderr testCase.ExpectedStderr runResult.Stderr
-            let exitCodeErrors = checkExitCode testCase.ExpectedExitCode runResult.ExitCode
-            let allErrors = outputErrors @ stderrErrors @ exitCodeErrors
-            if allErrors.IsEmpty then
-                Pass
+            if runResult.TimedOut then
+                let timeoutError = TimeoutExceeded(testCase.Timeout |> Option.defaultValue 0)
+                Fail [timeoutError]
             else
-                Fail allErrors
+                let outputErrors = check testCase.ExpectedOutput runResult.Stdout
+                let stderrErrors = checkStderr testCase.ExpectedStderr runResult.Stderr
+                let exitCodeErrors = checkExitCode testCase.ExpectedExitCode runResult.ExitCode
+                let allErrors = outputErrors @ stderrErrors @ exitCodeErrors
+                if allErrors.IsEmpty then
+                    Pass
+                else
+                    Fail allErrors
     finally
         cleanupTempFiles tempFiles
 
