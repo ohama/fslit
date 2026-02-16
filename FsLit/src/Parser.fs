@@ -46,12 +46,11 @@ let parseContent (content: string) : Result<TestCase, string> =
             currentSection <- CommandSection
         | ExitCodeSection ->
             exitCode <-
-                match value with
-                | Some v ->
+                value
+                |> Option.bind (fun v ->
                     match System.Int32.TryParse(v) with
-                    | (true, num) -> Some num
-                    | _ -> Option.None
-                | Option.None -> Option.None
+                    | true, num -> Some num
+                    | _ -> None)
             currentSection <- ExitCodeSection
         | InputSection ->
             currentSection <- InputSection
