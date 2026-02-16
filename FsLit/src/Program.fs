@@ -20,7 +20,7 @@ let private runTestCase (testFilePath: string) (testCase: TestCase) : TestResult
         | Ok runResult ->
             if runResult.TimedOut then
                 let timeoutError = TimeoutExceeded(testCase.Timeout |> Option.defaultValue 0)
-                Fail [timeoutError]
+                Fail ([timeoutError], runResult.Stdout, runResult.Stderr, runResult.ExitCode)
             else
                 let outputErrors = check testCase.ExpectedOutput runResult.Stdout
                 let stderrErrors = checkStderr testCase.ExpectedStderr runResult.Stderr
@@ -29,7 +29,7 @@ let private runTestCase (testFilePath: string) (testCase: TestCase) : TestResult
                 if allErrors.IsEmpty then
                     Pass
                 else
-                    Fail allErrors
+                    Fail (allErrors, runResult.Stdout, runResult.Stderr, runResult.ExitCode)
     finally
         cleanupTempFiles tempFiles
 
@@ -49,13 +49,23 @@ let private runTestFile (path: string) : TestReport =
 
         { File = path; Result = finalResult }
 
-let private printReport (report: TestReport) =
+let private printReport (verbose: bool) (report: TestReport) =
     match report.Result with
     | Pass ->
         printfn "PASS: %s" report.File
-    | Fail errors ->
+    | Fail (errors, actualStdout, actualStderr, actualExitCode) ->
         printfn "FAIL: %s" report.File
-        errors |> List.iter (fun e -> printfn "%s" (formatResult e))
+        errors |> List.iter (fun e -> printfn "%s" (formatResult verbose e))
+
+        if verbose then
+            printfn ""
+            printfn "Actual stdout:"
+            printfn "%s" (if actualStdout = "" then "(empty)" else actualStdout)
+            printfn ""
+            printfn "Actual stderr:"
+            printfn "%s" (if actualStderr = "" then "(empty)" else actualStderr)
+            printfn ""
+            printfn "Actual exit code: %d" actualExitCode
     | Error msg ->
         printfn "ERROR: %s" report.File
         printfn "  %s" msg
@@ -75,10 +85,11 @@ let private printHelp () =
     printfn "Usage: fslit [options] <test-file-or-directory>"
     printfn ""
     printfn "Options:"
-    printfn "  -h, --help    Show this help message"
+    printfn "  -h, --help       Show this help message"
+    printfn "  -v, --verbose    Show actual vs expected output on test failure"
     printfn ""
     printfn "Arguments:"
-    printfn "  <path>        Test file (.flt) or directory containing test files"
+    printfn "  <path>           Test file (.flt) or directory containing test files"
     printfn ""
     printfn "Test File Format:"
     printfn "  // --- Command: <command>"
@@ -109,20 +120,28 @@ let main args =
         printHelp ()
         0
     else
-        let path = args.[0]
-        let files = findTestFiles path
+        let verbose = args |> Array.exists (fun a -> a = "--verbose" || a = "-v")
+        let pathArgs = args |> Array.filter (fun a -> not (a.StartsWith("--") || a.StartsWith("-")))
+        let path = if pathArgs.Length > 0 then pathArgs.[0] else ""
 
-        if files.IsEmpty then
-            printfn "No test files found: %s" path
+        if path = "" then
+            printfn "No test file or directory specified"
+            printHelp ()
             2
         else
-            let reports = files |> List.map runTestFile
-            reports |> List.iter printReport
+            let files = findTestFiles path
 
-            let passed = reports |> List.filter (fun r -> r.Result = Pass) |> List.length
-            let total = reports.Length
+            if files.IsEmpty then
+                printfn "No test files found: %s" path
+                2
+            else
+                let reports = files |> List.map runTestFile
+                reports |> List.iter (printReport verbose)
 
-            printfn ""
-            printfn "Results: %d/%d passed" passed total
+                let passed = reports |> List.filter (fun r -> r.Result = Pass) |> List.length
+                let total = reports.Length
 
-            if passed = total then 0 else 1
+                printfn ""
+                printfn "Results: %d/%d passed" passed total
+
+                if passed = total then 0 else 1
