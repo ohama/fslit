@@ -121,7 +121,25 @@ let main args =
         0
     else
         let verbose = args |> Array.exists (fun a -> a = "--verbose" || a = "-v")
-        let pathArgs = args |> Array.filter (fun a -> not (a.StartsWith("--") || a.StartsWith("-")))
+
+        let filterPattern =
+            args
+            |> Array.tryFindIndex (fun a -> a = "--filter" || a = "-f")
+            |> Option.bind (fun idx ->
+                if idx + 1 < args.Length then Some args.[idx + 1]
+                else None)
+
+        let filterIdx = args |> Array.tryFindIndex (fun a -> a = "--filter" || a = "-f")
+        let pathArgs =
+            args
+            |> Array.mapi (fun i a -> (i, a))
+            |> Array.filter (fun (i, a) ->
+                not (a.StartsWith("--") || a.StartsWith("-")) &&
+                (match filterIdx with
+                 | Some idx when i = idx + 1 -> false
+                 | _ -> true))
+            |> Array.map snd
+
         let path = if pathArgs.Length > 0 then pathArgs.[0] else ""
 
         if path = "" then
