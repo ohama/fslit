@@ -35,9 +35,28 @@ print("Hello, World!")
 Hello, World!
 ```
 
+v0.3.0에서는 종료 코드, stderr, 타임아웃 검증과 --verbose, --filter 플래그도 지원합니다:
+
+```
+// --- Command: sh -c 'cat %input; echo "warning" >&2; exit 1'
+// --- Input:
+hello
+// --- Output:
+hello
+// --- ExitCode: 1
+// --- Stderr:
+warning
+// --- Timeout: 5
+```
+
 ```bash
 $ fslit test.flt
 PASS: test.flt
+
+Results: 1/1 passed
+
+$ fslit --verbose --filter 'echo*' tests/
+PASS: tests/echo.flt
 
 Results: 1/1 passed
 ```

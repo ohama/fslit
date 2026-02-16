@@ -10,14 +10,14 @@
 
 ```bash
 # 저장소 클론
-git clone <repository-url>
-cd FileTest
+git clone https://github.com/ohama/fslit
+cd fslit
 
 # 빌드
 dotnet build FsLit/FsLit.fsproj -c Release
 
 # 실행 테스트
-dotnet run --project FsLit/FsLit.fsproj -- --help
+dotnet run --project FsLit -- --help
 ```
 
 ## 방법 2: 독립 실행 파일
@@ -111,7 +111,23 @@ FsLit - F# Lit Test Runner
 Usage: fslit [options] <test-file-or-directory>
 
 Options:
-  -h, --help    Show this help message
+  -h, --help               Show this help message
+  -v, --verbose            Show actual vs expected output on test failure
+  -f, --filter <pattern>   Run only tests matching glob pattern (e.g., 'echo*')
+
+Arguments:
+  <path>           Test file (.flt) or directory containing test files
+
+Test File Format:
+  // --- Command: <command>
+  // --- Input:
+  <source code>
+  // --- Output:
+  <expected output>
+  // --- ExitCode: N          (optional, default: not checked)
+  // --- Stderr:              (optional, contains-match)
+  <expected stderr lines>
+  // --- Timeout: N          (optional, seconds)
 ...
 ```
 

@@ -17,7 +17,7 @@
 dotnet publish -c Release
 ```
 
-출력: `bin/Release/net8.0/publish/`
+출력: `bin/Release/net10.0/publish/`
 
 아직 .NET 런타임 필요.
 

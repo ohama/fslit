@@ -16,11 +16,11 @@ dotnet build FsLit/FsLit.fsproj
 ### 독립 실행 파일 생성
 
 ```bash
-# 일반 (73MB)
+# 일반 (~73MB)
 dotnet publish FsLit/FsLit.fsproj -c Release -r linux-x64 \
   --self-contained true -p:PublishSingleFile=true -o FsLit/publish
 
-# Trimmed (16MB)
+# Trimmed (~16MB)
 dotnet publish FsLit/FsLit.fsproj -c Release -r linux-x64 \
   --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true \
   -o FsLit/publish-trimmed
@@ -38,7 +38,21 @@ fslit test.flt
 
 # 디렉토리 내 모든 테스트 실행
 fslit tests/
+
+# 실패 시 상세 출력
+fslit --verbose tests/
+
+# 패턴으로 필터링
+fslit --filter 'echo*' tests/
 ```
+
+### CLI 옵션
+
+| 옵션 | 설명 |
+|------|------|
+| `-h, --help` | 도움말 표시 |
+| `-v, --verbose` | 실패 시 actual vs expected 출력 |
+| `-f, --filter <pattern>` | 글로브 패턴으로 테스트 필터링 |
 
 ### 종료 코드
 
@@ -58,15 +72,22 @@ fslit tests/
 <컴파일러/인터프리터에 전달할 소스 코드>
 // --- Output:
 <기대하는 출력>
+// --- ExitCode: N          (선택, 미지정 시 검사 안 함)
+// --- Stderr:              (선택, contains-match)
+<기대 stderr 라인>
+// --- Timeout: N           (선택, 초 단위)
 ```
 
-### 섹션 설명
+### 디렉티브
 
-| 섹션 | 필수 | 설명 |
-|------|------|------|
+| 디렉티브 | 필수 | 설명 |
+|----------|------|------|
 | `// --- Command:` | O | 실행할 명령어 |
 | `// --- Input:` | X | 소스 코드 (임시 파일로 저장됨) |
-| `// --- Output:` | X | 기대 출력 (줄 단위 비교) |
+| `// --- Output:` | X | 기대 stdout (줄 단위 정확 일치) |
+| `// --- ExitCode: N` | X | 기대 종료 코드 |
+| `// --- Stderr:` | X | 기대 stderr (contains-match) |
+| `// --- Timeout: N` | X | 타임아웃 초 |
 
 ### 변수 치환
 
@@ -97,36 +118,43 @@ print(1 + 2)
 3
 ```
 
-### 컴파일러 테스트
+### 종료 코드 + Stderr 테스트
 
 ```
-// --- Command: mycompiler %input && ./a.out
+// --- Command: sh -c 'echo "error output" >&2; exit 42'
+// --- ExitCode: 42
+// --- Stderr:
+error output
+```
+
+### 종합 테스트
+
+```
+// --- Command: sh -c 'cat %input; echo "warning" >&2; exit 1'
 // --- Input:
-fn main() {
-    print(42)
-}
+hello
 // --- Output:
-42
-```
-
-### 에러 메시지 테스트
-
-```
-// --- Command: mycompiler %input 2>&1
-// --- Input:
-let x =
-// --- Output:
-error: unexpected end of input at line 1
+hello
+// --- ExitCode: 1
+// --- Stderr:
+warning
+// --- Timeout: 5
 ```
 
 ## 출력 비교 규칙
 
-Output 섹션의 모든 줄은 순서대로 실제 출력과 비교됩니다.
+**stdout**: Output 섹션의 모든 줄은 순서대로 실제 출력과 비교됩니다.
 
 - 각 줄은 정확히 일치해야 함 (CHECK-NEXT 방식)
 - 빈 줄도 비교 대상
 - 실제 출력이 더 길면: PASS (나머지 무시)
 - 실제 출력이 더 짧으면: FAIL
+
+**stderr**: Contains-match 방식으로 비교됩니다.
+
+- 각 기대 라인이 실제 stderr 어딘가에 포함되면 통과
+- 추가 라인 허용 (노이즈 내성)
+- 순서 무관
 
 ## 동작 흐름
 
@@ -142,6 +170,9 @@ Output 섹션의 모든 줄은 순서대로 실제 출력과 비교됩니다.
 │  - Command 추출  │
 │  - Input 추출   │
 │  - Output 추출  │
+│  - ExitCode 추출│
+│  - Stderr 추출  │
+│  - Timeout 추출 │
 └────────┬────────┘
          │
          ▼
@@ -157,12 +188,17 @@ Output 섹션의 모든 줄은 순서대로 실제 출력과 비교됩니다.
 │  Runner         │
 │  - 명령어 실행  │
 │  - stdout 캡처  │
+│  - stderr 캡처  │
+│  - exit code    │
+│  - timeout 적용 │
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
 │  Checker        │
-│  - 줄 단위 비교 │
+│  - stdout 비교  │
+│  - stderr 비교  │
+│  - exit code    │
 │  - 결과 보고    │
 └────────┬────────┘
          │
@@ -178,12 +214,12 @@ Output 섹션의 모든 줄은 순서대로 실제 출력과 비교됩니다.
 FsLit/
 ├── FsLit.fsproj
 ├── src/
-│   ├── Types.fs         # 핵심 타입 정의
-│   ├── Parser.fs        # 테스트 파일 파싱
+│   ├── Types.fs         # 핵심 타입 정의 (TestCase, CheckResult, TestResult)
+│   ├── Checker.fs       # 출력 비교 (stdout, stderr, exit code)
 │   ├── Substitution.fs  # 변수 치환, 임시 파일 관리
-│   ├── Runner.fs        # 명령어 실행
-│   ├── Checker.fs       # 출력 비교
-│   └── Program.fs       # CLI 진입점
+│   ├── Runner.fs        # 명령어 실행, timeout 적용
+│   ├── Parser.fs        # 테스트 파일 파싱 (6개 디렉티브)
+│   └── Program.fs       # CLI 진입점, --verbose, --filter
 ├── publish/             # 독립 실행 파일
 └── publish-trimmed/     # Trimmed 실행 파일
 ```
