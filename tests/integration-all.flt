@@ -1,0 +1,9 @@
+// --- Command: sh -c 'cat %input; echo "error output" >&2; exit 42'
+// --- Input:
+Hello from integration test
+// --- Output:
+Hello from integration test
+// --- ExitCode: 42
+// --- Stderr:
+error output
+// --- Timeout: 5
