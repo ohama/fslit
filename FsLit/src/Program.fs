@@ -2,6 +2,7 @@ module FsLit.Program
 
 open System
 open System.IO
+open System.Text.RegularExpressions
 open FsLit.Types
 open FsLit.Parser
 open FsLit.Substitution
@@ -70,14 +71,32 @@ let private printReport (verbose: bool) (report: TestReport) =
         printfn "ERROR: %s" report.File
         printfn "  %s" msg
 
-let private findTestFiles (path: string) : string list =
-    if File.Exists(path) then
-        [ path ]
-    elif Directory.Exists(path) then
-        Directory.GetFiles(path, "*.flt", SearchOption.AllDirectories)
-        |> Array.toList
-    else
-        []
+let private matchesPattern (fileName: string) (pattern: string) : bool =
+    try
+        let regexPattern =
+            pattern
+                .Replace(".", "\\.")
+                .Replace("*", ".*")
+                .Replace("?", ".")
+        let regex = Regex("^" + regexPattern + "$", RegexOptions.IgnoreCase)
+        regex.IsMatch(fileName)
+    with
+    | :? System.ArgumentException -> false
+
+let private findTestFiles (path: string) (filterPattern: string option) : string list =
+    let allFiles =
+        if File.Exists(path) then
+            [ path ]
+        elif Directory.Exists(path) then
+            Directory.GetFiles(path, "*.flt", SearchOption.AllDirectories)
+            |> Array.toList
+        else
+            []
+
+    match filterPattern with
+    | None -> allFiles
+    | Some pattern ->
+        allFiles |> List.filter (fun f -> matchesPattern (Path.GetFileName(f)) pattern)
 
 let private printHelp () =
     printfn "FsLit - F# Lit Test Runner"
@@ -147,10 +166,14 @@ let main args =
             printHelp ()
             2
         else
-            let files = findTestFiles path
+            let files = findTestFiles path filterPattern
 
             if files.IsEmpty then
-                printfn "No test files found: %s" path
+                match filterPattern with
+                | Some pattern ->
+                    printfn "No test files found matching filter '%s' in: %s" pattern path
+                | None ->
+                    printfn "No test files found: %s" path
                 2
             else
                 let reports = files |> List.map runTestFile
