@@ -1,3 +1,4 @@
+// Test: missing Stderr directive skips stderr verification even when stderr is produced
 // --- Command: echo "some error message" >&2; exit 0
 // --- Output:
 

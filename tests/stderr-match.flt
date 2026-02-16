@@ -1,3 +1,4 @@
+// Test: Stderr directive matches when all expected lines are contained in actual stderr
 // --- Command: echo "error: test failed" >&2; echo "warning: deprecated" >&2; echo "success"
 // --- Stderr:
 error: test failed

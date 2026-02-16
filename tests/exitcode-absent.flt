@@ -1,2 +1,3 @@
+// Test: missing ExitCode directive skips exit code verification
 // --- Command: exit 1
 // --- Output:

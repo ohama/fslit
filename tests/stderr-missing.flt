@@ -1,3 +1,4 @@
+// Test: Stderr directive fails when expected line is missing from actual stderr
 // --- Command: echo "error: test failed" >&2
 // --- Stderr:
 error: test failed

@@ -1,2 +1,3 @@
+// Test: missing Timeout directive applies no time limit to command
 // --- Command: sleep 2
 // --- Output:

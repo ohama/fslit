@@ -1,3 +1,4 @@
+// Test: %input variable substitution passes Input section as temp file to command
 // --- Command: cat %input
 // --- Input:
 line1

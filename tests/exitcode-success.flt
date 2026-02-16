@@ -1,3 +1,4 @@
+// Test: ExitCode directive matches when command exits with expected code 0
 // --- Command: exit 0
 // --- ExitCode: 0
 // --- Output:

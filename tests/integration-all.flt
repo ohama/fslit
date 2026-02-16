@@ -1,3 +1,4 @@
+// Test: all directives (Command, Input, Output, ExitCode, Stderr, Timeout) work together
 // --- Command: sh -c 'cat %input; echo "error output" >&2; exit 42'
 // --- Input:
 Hello from integration test

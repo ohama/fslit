@@ -1,3 +1,4 @@
+// Test: ExitCode directive matches non-zero exit code
 // --- Command: exit 1
 // --- ExitCode: 1
 // --- Output:

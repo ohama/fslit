@@ -1,3 +1,4 @@
+// Test: basic echo command produces expected stdout output
 // --- Command: echo "hello world"
 // --- Output:
 hello world
